@@ -13,6 +13,7 @@ import (
 	"runtime"
 	"sort"
 	"strings"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -23,6 +24,7 @@ import (
 	"github.com/arduino/arduino-cli/cli/output"
 	"github.com/arduino/arduino-cli/commands/board"
 	"github.com/arduino/arduino-cli/commands/compile"
+	"github.com/arduino/arduino-cli/commands/core"
 	"github.com/arduino/arduino-cli/commands/lib"
 	"github.com/arduino/arduino-cli/commands/upload"
 	"github.com/arduino/arduino-cli/configuration"
@@ -74,6 +76,7 @@ type Ready struct {
 	Port               bool
 	SelectionExists    bool
 	LibrariesInstalled bool
+	CoreInstalled      bool
 	NotFlashing        bool
 }
 
@@ -113,6 +116,7 @@ func main() {
 	go updateReleases()
 	go getPorts()
 	go checkLibraries()
+	go checkCore()
 
 	mainWindow.SetContent(container.NewVBox(
 		vboxMain,
@@ -179,7 +183,7 @@ func makeMainSection() *fyne.Container {
 	driverBtn := widget.NewButton("CH340 Drivers", func() {
 		go installCH340()
 	})
-	if runtime.GOOS != "windows" && false {
+	if runtime.GOOS != "windows" {
 		driverBtn.Hide()
 	}
 
@@ -286,8 +290,8 @@ func setStatus(s string) {
 	statusLabel.SetText(s)
 }
 
-func errorPopup(s string) {
-	popup := mainApp.NewWindow("Error")
+func newPopup(t string, s string) {
+	popup := mainApp.NewWindow(t)
 	label := widget.NewLabel(s)
 	label.Wrapping = fyne.TextWrapWord
 
@@ -306,9 +310,10 @@ func errorPopup(s string) {
 }
 
 func checkReady() {
-	if ready.LibrariesInstalled &&
+	if ready.Port &&
 		ready.SelectionExists &&
-		ready.Port &&
+		ready.LibrariesInstalled &&
+		ready.CoreInstalled &&
 		ready.NotFlashing {
 		flashBtn.Enable()
 	} else {
@@ -342,7 +347,7 @@ func checkLibraries() {
 			Instance: inst,
 			Name:     libName,
 		}, output.NewNullDownloadProgressCB(), output.NewNullTaskProgressCB()); err != nil {
-			errorPopup(err.Error())
+			newPopup("Error", err.Error())
 			r = false
 		}
 	}
@@ -350,24 +355,37 @@ func checkLibraries() {
 	checkReady()
 }
 
+func checkCore() {
+	if _, err := core.PlatformInstall(context.Background(), &rpc.PlatformInstallRequest{
+		Instance:        inst,
+		PlatformPackage: "arduino",
+		Architecture:    "avr",
+	}, output.NewNullDownloadProgressCB(), output.NewNullTaskProgressCB()); err != nil {
+		newPopup("Error", err.Error())
+		return
+	}
+	ready.CoreInstalled = true
+	checkReady()
+}
+
 func updateReleases() {
 	resp, err := http.Get(API_URL)
 	if err != nil {
-		errorPopup("Unable to get releases")
+		newPopup("Error", "Unable to get releases")
 		return
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		errorPopup("Unable to get releases")
+		newPopup("Error", "Unable to get releases")
 		return
 	}
 
 	all_releases := Releases{}
 	err = json.Unmarshal(body, &all_releases)
 	if err != nil {
-		errorPopup("Unable to parse releases")
+		newPopup("Error", "Unable to parse releases")
 		return
 	}
 
@@ -426,12 +444,12 @@ func downloadAndFlash(v string, h string) {
 	hexFile := filepath.Join(tmpPath, h)
 	if _, err := os.Stat(hexFile); err != nil {
 		if err := downloadFile(hexFile, releases[v][h]); err != nil {
-			errorPopup(err.Error())
+			newPopup("Error", err.Error())
 			return
 		}
 	}
 	if err := flashHex(hexFile); err != nil {
-		errorPopup(err.Error())
+		newPopup("Error", err.Error())
 	}
 }
 
@@ -456,13 +474,13 @@ func compileAndFlash(v string) {
 
 		err := downloadFile(zipFile, zipUrl)
 		if err != nil {
-			errorPopup(err.Error())
+			newPopup("Error", err.Error())
 			return
 		}
 
 		fileNames, err := unzipFile(zipFile, tmpPath)
 		if err != nil {
-			errorPopup(err.Error())
+			newPopup("Error", err.Error())
 			return
 		}
 		// assume first element is parent directory
@@ -476,7 +494,7 @@ func compileAndFlash(v string) {
 	setStatus("Compiling custom firmware")
 	err := os.WriteFile(configFile, generateCustomConfig(), os.ModePerm)
 	if err != nil {
-		errorPopup(err.Error())
+		newPopup("Error", err.Error())
 		return
 	}
 	if _, err := compile.Compile(context.Background(), &rpc.CompileRequest{
@@ -484,14 +502,14 @@ func compileAndFlash(v string) {
 		Fqbn:       FQBN,
 		SketchPath: newFolder,
 		ExportDir:  exportDir,
-	}, os.Stdout, os.Stderr, false); err != nil {
+	}, io.Discard, io.Discard, false); err != nil {
 		fmt.Println(err)
 	}
 
 	setStatus("Flashing custom firmware")
 	err = flashHex(filepath.Join(exportDir, v+".ino.hex"))
 	if err != nil {
-		errorPopup(err.Error())
+		newPopup("Error", err.Error())
 	}
 
 	ready.NotFlashing = true
@@ -603,22 +621,25 @@ func installCH340() {
 		if _, err := os.Stat(zipFile); err != nil {
 			err := downloadFile(zipFile, CH340_URL)
 			if err != nil {
-				errorPopup(err.Error())
+				newPopup("Error", err.Error())
 				return
 			}
 		}
 
 		_, err = unzipFile(zipFile, tmpPath)
 		if err != nil {
-			errorPopup(err.Error())
+			newPopup("Error", err.Error())
 			return
 		}
 	}
 
+	newPopup("Info", "Make sure to plug in the controller before hitting the Install button")
+	time.Sleep(time.Second * 2)
+
 	cmd := exec.Command(filepath.Join(tmpPath, "CH34x_Install_Windows_v3_4.EXE"))
 	err := cmd.Start()
 	if err != nil {
-		errorPopup(err.Error())
+		newPopup("Error", err.Error())
 	}
 }
 
