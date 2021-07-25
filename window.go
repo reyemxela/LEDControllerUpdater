@@ -67,17 +67,8 @@ func (a *App) MakeMainSection() *fyne.Container {
 
 	a.portSelect = widget.NewSelect([]string{}, func(value string) {
 		a.port = value
-		if a.port != "" {
-			a.ready.Port = true
-		} else {
-			a.ready.Port = false
-		}
-		a.CheckReady()
 	})
-
-	portRefreshBtn := widget.NewButton("Refresh COM ports", func() {
-		a.GetPorts()
-	})
+	a.portSelect.PlaceHolder = "(Select COM port)"
 
 	a.flashBtn = widget.NewButton("Flash Firmware", func() {
 		if a.layoutSelect.Selected == "-Custom-" {
@@ -97,14 +88,14 @@ func (a *App) MakeMainSection() *fyne.Container {
 	}
 
 	return container.NewVBox(
-		widget.NewLabel("WingnutTech LED Controller Updater"),
+		widget.NewLabel("WingnutTech LED Controller Updater "+APP_VERSION),
 		driverBtn,
 		a.verSelect,
 		a.layoutSelect,
 		container.NewGridWithColumns(2,
 			container.NewVBox(
 				a.portSelect,
-				portRefreshBtn,
+				widget.NewLabel(""),
 			),
 			a.flashBtn,
 		),
