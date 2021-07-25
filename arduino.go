@@ -6,8 +6,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"sort"
-	"strings"
 
 	"github.com/arduino/arduino-cli/cli/output"
 	"github.com/arduino/arduino-cli/commands/board"
@@ -47,28 +45,43 @@ func (a *App) CheckCore() {
 }
 
 func (a *App) GetPorts() {
-	a.port = ""
-	ports := []string{}
-
-	// so when I first made this function, the arduino-cli board.List() function
-	// definitely returned ALL serial ports on the system, so this added them all
-	// to the list and selected the one that has "(USB)" at the end. Now it only returns
-	// real boards. Not sure what changed or when, but I'm leaving it like it is for now.
-	res, _ := board.List(a.instance.Id)
-	for _, p := range res {
-		ports = append(ports, p.Address)
-		if strings.HasSuffix(p.ProtocolLabel, "(USB)") {
-			a.port = p.Address
-		}
+	eventsChan, err := board.Watch(a.instance.Id, nil)
+	if err != nil {
+		a.NewPopup("Error", err.Error())
 	}
 
-	// sort descending
-	sort.Slice(ports, func(i, j int) bool {
-		return ports[i] > ports[j]
-	})
-
-	a.portSelect.Options = ports
-	a.portSelect.SetSelected(a.port)
+	// loop forever listening for board.Watch to give us events
+	for event := range eventsChan {
+		addr := event.Port.Address
+		if event.EventType == "add" {
+			// a board got plugged in. add it to the list, and set the current port to it
+			a.portSelect.Options = append(a.portSelect.Options, addr)
+			a.port = addr
+		} else {
+			// board got unplugged. remove it from the list
+			for i, v := range a.portSelect.Options {
+				if v == addr {
+					a.portSelect.Options = append(a.portSelect.Options[:i], a.portSelect.Options[i+1:]...)
+				}
+			}
+			// if the unplugged board was our current one, grab the next available (if there is one)
+			if a.port == addr {
+				if len(a.portSelect.Options) > 0 {
+					a.port = a.portSelect.Options[0]
+				} else {
+					a.port = ""
+				}
+			}
+		}
+		if a.port != "" {
+			a.ready.Port = true
+			a.portSelect.SetSelected(a.port)
+		} else {
+			a.ready.Port = false
+			a.portSelect.ClearSelected()
+		}
+		a.CheckReady()
+	}
 }
 
 func (a *App) CompileAndFlash(v string) {
