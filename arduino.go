@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/arduino/arduino-cli/cli/output"
 	"github.com/arduino/arduino-cli/commands/board"
@@ -14,6 +15,11 @@ import (
 	"github.com/arduino/arduino-cli/commands/lib"
 	"github.com/arduino/arduino-cli/commands/upload"
 	rpc "github.com/arduino/arduino-cli/rpc/cc/arduino/cli/commands/v1"
+)
+
+const (
+	FQBN    = "arduino:avr:nano:cpu=atmega328"
+	FQBNold = "arduino:avr:nano:cpu=atmega328old"
 )
 
 func (a *App) CheckLibraries() {
@@ -176,14 +182,27 @@ func (a *App) DownloadAndFlash(v string, h string) {
 
 func (a *App) FlashHex(hexFile string) error {
 	a.SetStatus("Flashing " + filepath.Base(hexFile))
-	if _, err := upload.Upload(context.Background(), &rpc.UploadRequest{
-		Instance:   a.instance,
-		Fqbn:       FQBN,
-		SketchPath: a.tmpPath,
-		Port:       a.port,
-		ImportFile: hexFile,
-	}, io.Discard, io.Discard); err != nil {
+
+	ul := func(f string) error {
+		_, err := upload.Upload(context.Background(), &rpc.UploadRequest{
+			Instance:   a.instance,
+			Fqbn:       f,
+			SketchPath: a.tmpPath,
+			Port:       a.port,
+			ImportFile: hexFile,
+		}, io.Discard, io.Discard)
 		return err
+	}
+
+	if err := ul(FQBN); err != nil {
+		if strings.Contains(err.Error(), "uploading error") {
+			a.SetStatus("Trying old bootloader mode")
+			if err := ul(FQBNold); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
 	}
 
 	a.SetStatus("Done!")
