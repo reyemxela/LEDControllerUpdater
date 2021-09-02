@@ -25,7 +25,9 @@ func (a *App) CheckReady() {
 		a.ready.NotFlashing {
 		a.flashBtn.Enable()
 	} else {
-		a.flashBtn.Disable()
+		if !a.batchRunning {
+			a.flashBtn.Disable()
+		}
 	}
 }
 
@@ -71,11 +73,19 @@ func (a *App) MakeMainSection() *fyne.Container {
 	a.portSelect.PlaceHolder = "(Select COM port)"
 
 	a.flashBtn = widget.NewButton("Flash Firmware", func() {
-		if a.layoutSelect.Selected == "-Custom-" {
-			go a.CompileAndFlash(a.verSelect.Selected)
-		} else {
-			go a.DownloadAndFlash(a.verSelect.Selected, a.layoutSelect.Selected)
+		if a.batchMode {
+			if a.batchRunning {
+				a.flashBtn.SetText("Start Batch")
+				a.batchRunning = false
+				a.batchPort = ""
+				return
+			} else {
+				a.flashBtn.SetText("Stop Batch")
+				a.batchRunning = true
+				a.batchPort = a.port
+			}
 		}
+		a.DoFlash()
 	})
 	a.flashBtn.Disable()
 
@@ -169,6 +179,18 @@ func (a *App) MakeCustomSection() *fyne.Container {
 		NavLEDLabel,
 		NavLEDSlider,
 	)
+}
+
+func (a *App) ToggleBatchMode() {
+	if a.batchMode {
+		a.batchMode = false
+		a.flashBtn.SetText("Flash Firmware")
+	} else {
+		a.batchMode = true
+		a.flashBtn.SetText("Start Batch")
+	}
+	a.batchPort = ""
+	a.batchRunning = false
 }
 
 func (a *App) SetStatus(s string) {

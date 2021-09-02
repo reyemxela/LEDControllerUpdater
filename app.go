@@ -7,6 +7,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/driver/desktop"
 	"fyne.io/fyne/v2/widget"
 	"github.com/arduino/arduino-cli/cli/instance"
 	"github.com/arduino/arduino-cli/configuration"
@@ -20,6 +21,10 @@ type App struct {
 	releases map[string]map[string]string
 	config   CustomConfig
 	ready    Ready
+
+	batchMode    bool
+	batchRunning bool
+	batchPort    string
 
 	instance *rpc.Instance
 
@@ -66,6 +71,11 @@ func CreateApp() *App {
 		a.customSection,
 		a.status,
 	))
+
+	ctrlB := desktop.CustomShortcut{KeyName: fyne.KeyB, Modifier: desktop.ControlModifier | desktop.ShiftModifier}
+	a.mainWindow.Canvas().AddShortcut(&ctrlB, func(shortcut fyne.Shortcut) {
+		a.ToggleBatchMode()
+	})
 
 	return a
 }
