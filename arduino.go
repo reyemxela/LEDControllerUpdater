@@ -63,6 +63,10 @@ func (a *App) GetPorts() {
 			// a board got plugged in. add it to the list, and set the current port to it
 			a.portSelect.Options = append(a.portSelect.Options, addr)
 			a.port = addr
+
+			if a.batchRunning && a.port == a.batchPort {
+				a.DoFlash()
+			}
 		} else {
 			// board got unplugged. remove it from the list
 			for i, v := range a.portSelect.Options {
@@ -79,14 +83,22 @@ func (a *App) GetPorts() {
 				}
 			}
 		}
-		if a.port != "" {
-			a.ready.Port = true
-			a.portSelect.SetSelected(a.port)
-		} else {
+		if a.port == "" {
 			a.ready.Port = false
 			a.portSelect.ClearSelected()
+		} else {
+			a.ready.Port = true
+			a.portSelect.SetSelected(a.port)
 		}
 		a.CheckReady()
+	}
+}
+
+func (a *App) DoFlash() {
+	if a.layoutSelect.Selected == "-Custom-" {
+		go a.CompileAndFlash(a.verSelect.Selected)
+	} else {
+		go a.DownloadAndFlash(a.verSelect.Selected, a.layoutSelect.Selected)
 	}
 }
 
@@ -150,8 +162,7 @@ func (a *App) CompileAndFlash(v string) {
 	}
 
 	a.SetStatus("Flashing custom firmware")
-	err = a.FlashHex(filepath.Join(exportDir, v+".ino.hex"))
-	if err != nil {
+	if err := a.FlashHex(filepath.Join(exportDir, v+".ino.hex")); err != nil {
 		a.NewPopup("Error", err.Error())
 	}
 
