@@ -22,6 +22,11 @@ const (
 	FQBNold = "arduino:avr:nano:cpu=atmega328old"
 )
 
+var neededLibraries = []string{
+	"FastLED@3.4.0",
+	"Adafruit BMP280 Library@2.3.0",
+}
+
 func (a *App) CheckLibraries() {
 	r := true
 	for _, libName := range neededLibraries {
