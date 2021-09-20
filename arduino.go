@@ -22,17 +22,18 @@ const (
 	FQBNold = "arduino:avr:nano:cpu=atmega328old"
 )
 
-var neededLibraries = []string{
-	"FastLED@3.4.0",
-	"Adafruit BMP280 Library@2.3.0",
+var neededLibraries = [][]string{
+	{"FastLED", "3.4.0"},
+	{"Adafruit BMP280 Library", "2.3.0"},
 }
 
 func (a *App) CheckLibraries() {
 	r := true
-	for _, libName := range neededLibraries {
+	for _, libs := range neededLibraries {
 		if err := lib.LibraryInstall(context.Background(), &rpc.LibraryInstallRequest{
 			Instance: a.instance,
-			Name:     libName,
+			Name:     libs[0],
+			Version:  libs[1],
 		}, output.NewNullDownloadProgressCB(), output.NewNullTaskProgressCB()); err != nil {
 			a.NewPopup("Error", err.Error())
 			r = false
