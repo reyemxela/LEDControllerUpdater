@@ -1,3 +1,13 @@
+## [v1.1.0] - 2021-09-24
+### New firmware repository and structure
+The firmware repo has been renamed from FT-Night-Radian-LED-Controller to just LEDController, and overhauled in the process. This new project structure required breaking changes to the Updater app.
+
+The old firmware repo has been left in place so as not to break old versions of the updater, but will be archived.
+
+### Changed
+- Point to new firmware repo and updated filenames.
+- Added `LED_POWER` define to custom layout generation. There's a difference in power draw between the Night Radian and the strips we're using for the kits, so this allows us to specify the power draw per LED to keep power usage in check.
+
 ## [v1.0.4] - 2021-09-20
 ### Changed
 - Now specifying library versions. BMP280 v2.4.0 adds ~1KB to compiled hex size, and we're already tight.
