@@ -115,46 +115,46 @@ func (a *App) MakeMainSection() *fyne.Container {
 func (a *App) MakeCustomSection() *fyne.Container {
 	wingLEDLabel := widget.NewLabel("Wing: ")
 	wingRevCheck := widget.NewCheck("Reversed?", func(checked bool) {
-		a.config.WingRev = checked
+		a.layout.WingRev = checked
 	})
 	wingLEDSlider := widget.NewSlider(0, 50)
 	wingLEDSlider.OnChanged = func(value float64) {
 		wingLEDLabel.SetText("Wing: " + fmt.Sprint(value))
-		a.config.WingLEDs = int(value)
+		a.layout.WingLEDs = int(value)
 	}
 	wingLEDSlider.SetValue(19)
 
 	noseLEDLabel := widget.NewLabel("Nose: ")
 	noseRevCheck := widget.NewCheck("Reversed?", func(checked bool) {
-		a.config.NoseRev = checked
+		a.layout.NoseRev = checked
 	})
 	noseLEDSlider := widget.NewSlider(0, 50)
 	noseLEDSlider.OnChanged = func(value float64) {
 		noseLEDLabel.SetText("Nose: " + fmt.Sprint(value))
-		a.config.NoseLEDs = int(value)
+		a.layout.NoseLEDs = int(value)
 	}
 	noseRevCheck.SetChecked(true)
 	noseLEDSlider.SetValue(6)
 
 	fuseLEDLabel := widget.NewLabel("Fuse: ")
 	fuseRevCheck := widget.NewCheck("Reversed?", func(checked bool) {
-		a.config.FuseRev = checked
+		a.layout.FuseRev = checked
 	})
 	fuseLEDSlider := widget.NewSlider(0, 50)
 	fuseLEDSlider.OnChanged = func(value float64) {
 		fuseLEDLabel.SetText("Fuse: " + fmt.Sprint(value))
-		a.config.FuseLEDs = int(value)
+		a.layout.FuseLEDs = int(value)
 	}
 	fuseLEDSlider.SetValue(13)
 
 	tailLEDLabel := widget.NewLabel("Tail: ")
 	tailRevCheck := widget.NewCheck("Reversed?", func(checked bool) {
-		a.config.TailRev = checked
+		a.layout.TailRev = checked
 	})
 	tailLEDSlider := widget.NewSlider(0, 50)
 	tailLEDSlider.OnChanged = func(value float64) {
 		tailLEDLabel.SetText("Tail: " + fmt.Sprint(value))
-		a.config.TailLEDs = int(value)
+		a.layout.TailLEDs = int(value)
 	}
 	tailLEDSlider.SetValue(4)
 
@@ -162,7 +162,7 @@ func (a *App) MakeCustomSection() *fyne.Container {
 	NavLEDSlider := widget.NewSlider(0, 50)
 	NavLEDSlider.OnChanged = func(value float64) {
 		NavLEDLabel.SetText("Nav LEDs: " + fmt.Sprint(value))
-		a.config.WingNavLEDs = int(value)
+		a.layout.WingNavLEDs = int(value)
 	}
 	NavLEDSlider.SetValue(7)
 

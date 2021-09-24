@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-type CustomConfig struct {
+type CustomLayout struct {
 	WingLEDs    int
 	NoseLEDs    int
 	FuseLEDs    int
@@ -15,9 +15,13 @@ type CustomConfig struct {
 	TailRev bool
 }
 
-func (a *App) GenerateCustomConfig() []byte {
+func (a *App) GenerateCustomLayout() []byte {
 	return []byte(fmt.Sprintf(
-		"// number of LEDs in specific strings\n"+
+		"#pragma once\n"+
+			"\n"+
+			"// Layout: -- Custom --\n"+
+			"\n"+
+			"// number of LEDs in specific strings\n"+
 			"#define WING_LEDS %d // total wing LEDs\n"+
 			"#define NOSE_LEDS %d // total nose LEDs\n"+
 			"#define FUSE_LEDS %d // total fuselage LEDs\n"+
@@ -32,11 +36,11 @@ func (a *App) GenerateCustomConfig() []byte {
 			"#define NOSE_FUSE_JOINED true // are the nose and fuse strings joined?\n"+
 			"#define WING_NAV_LEDS %d // wing LEDs that are navlights\n"+
 			"\n"+
-			"#define TMP_BRIGHTNESS 175\n",
-		a.config.WingLEDs, a.config.NoseLEDs,
-		a.config.FuseLEDs, a.config.TailLEDs,
-		a.config.WingRev, a.config.NoseRev,
-		a.config.FuseRev, a.config.TailRev,
-		a.config.WingNavLEDs,
+			"#define LED_POWER 25\n",
+		a.layout.WingLEDs, a.layout.NoseLEDs,
+		a.layout.FuseLEDs, a.layout.TailLEDs,
+		a.layout.WingRev, a.layout.NoseRev,
+		a.layout.FuseRev, a.layout.TailRev,
+		a.layout.WingNavLEDs,
 	))
 }

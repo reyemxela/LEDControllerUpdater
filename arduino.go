@@ -118,7 +118,7 @@ func (a *App) CompileAndFlash(v string) {
 	}()
 
 	newFolder := filepath.Join(a.tmpPath, v)
-	configFile := filepath.Join(newFolder, "config.h")
+	layoutFile := filepath.Join(newFolder, "layout.h")
 	exportDir := filepath.Join(newFolder, "build")
 
 	if _, err := os.Stat(newFolder); err != nil {
@@ -144,15 +144,15 @@ func (a *App) CompileAndFlash(v string) {
 
 		// rename .ino file because the arduino tools demand it matches the folder name
 		os.Rename(
-			filepath.Join(newFolder, "FT-Night-Radian-LED-Controller.ino"),
+			filepath.Join(newFolder, "LEDController.ino"),
 			filepath.Join(newFolder, v+".ino"),
 		)
 	}
 
 	a.SetStatus("Compiling custom firmware")
 
-	// write out the custom config into config.h
-	err := os.WriteFile(configFile, a.GenerateCustomConfig(), os.ModePerm)
+	// write out the custom layout into layout.h
+	err := os.WriteFile(layoutFile, a.GenerateCustomLayout(), os.ModePerm)
 	if err != nil {
 		a.NewPopup("Error", err.Error())
 		return

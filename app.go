@@ -19,7 +19,7 @@ type App struct {
 	tmpPath  string
 	port     string
 	releases map[string]map[string]string
-	config   CustomConfig
+	layout   CustomLayout
 	ready    Ready
 
 	batchMode    bool
@@ -55,7 +55,7 @@ func CreateApp() *App {
 	}
 
 	a.releases = make(map[string]map[string]string)
-	a.config = CustomConfig{}
+	a.layout = CustomLayout{}
 
 	a.ready = Ready{
 		NotFlashing: true,
