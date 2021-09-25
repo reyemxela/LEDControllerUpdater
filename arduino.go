@@ -64,13 +64,15 @@ func (a *App) GetPorts() {
 
 	// loop forever listening for board.Watch to give us events
 	for event := range eventsChan {
-		addr := event.Port.Address
+		port := event.Port.Port
+		addr := port.Address
 		if event.EventType == "add" {
 			// a board got plugged in. add it to the list, and set the current port to it
+			a.allPorts[addr] = port
 			a.portSelect.Options = append(a.portSelect.Options, addr)
-			a.port = addr
+			a.port = port
 
-			if a.batchRunning && a.port == a.batchPort {
+			if a.batchRunning && a.port.Address == a.batchPort.Address {
 				a.DoFlash()
 			}
 		} else {
@@ -80,21 +82,22 @@ func (a *App) GetPorts() {
 					a.portSelect.Options = append(a.portSelect.Options[:i], a.portSelect.Options[i+1:]...)
 				}
 			}
+			delete(a.allPorts, addr)
 			// if the unplugged board was our current one, grab the next available (if there is one)
-			if a.port == addr {
+			if a.port.Address == port.Address {
 				if len(a.portSelect.Options) > 0 {
-					a.port = a.portSelect.Options[0]
+					a.port = a.allPorts[a.portSelect.Options[0]]
 				} else {
-					a.port = ""
+					a.port = nil
 				}
 			}
 		}
-		if a.port == "" {
+		if a.port == nil {
 			a.ready.Port = false
 			a.portSelect.ClearSelected()
 		} else {
 			a.ready.Port = true
-			a.portSelect.SetSelected(a.port)
+			a.portSelect.SetSelected(addr)
 		}
 		a.CheckReady()
 	}

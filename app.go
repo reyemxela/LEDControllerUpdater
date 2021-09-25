@@ -17,14 +17,15 @@ import (
 
 type App struct {
 	tmpPath  string
-	port     string
+	port     *rpc.Port
+	allPorts map[string]*rpc.Port
 	releases map[string]map[string]string
 	layout   CustomLayout
 	ready    Ready
 
 	batchMode    bool
 	batchRunning bool
-	batchPort    string
+	batchPort    *rpc.Port
 
 	instance *rpc.Instance
 
@@ -55,6 +56,7 @@ func CreateApp() *App {
 	}
 
 	a.releases = make(map[string]map[string]string)
+	a.allPorts = make(map[string]*rpc.Port)
 	a.layout = CustomLayout{}
 
 	a.ready = Ready{

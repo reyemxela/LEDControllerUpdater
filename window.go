@@ -68,7 +68,7 @@ func (a *App) MakeMainSection() *fyne.Container {
 	a.layoutSelect.PlaceHolder = "(Select a layout)"
 
 	a.portSelect = widget.NewSelect([]string{}, func(value string) {
-		a.port = value
+		a.port = a.allPorts[value]
 	})
 	a.portSelect.PlaceHolder = "(Select COM port)"
 
@@ -77,7 +77,7 @@ func (a *App) MakeMainSection() *fyne.Container {
 			if a.batchRunning {
 				a.flashBtn.SetText("Start Batch")
 				a.batchRunning = false
-				a.batchPort = ""
+				a.batchPort = nil
 				return
 			} else {
 				a.flashBtn.SetText("Stop Batch")
@@ -189,7 +189,7 @@ func (a *App) ToggleBatchMode() {
 		a.batchMode = true
 		a.flashBtn.SetText("Start Batch")
 	}
-	a.batchPort = ""
+	a.batchPort = nil
 	a.batchRunning = false
 }
 
