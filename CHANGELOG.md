@@ -7,6 +7,7 @@ The old firmware repo has been left in place so as not to break old versions of 
 ### Changed
 - Point to new firmware repo and updated filenames.
 - Added `LED_POWER` define to custom layout generation. There's a difference in power draw between the Night Radian and the strips we're using for the kits, so this allows us to specify the power draw per LED to keep power usage in check.
+- The app now does a quick check to determine the bootloader version before flashing. In the past, the wait time could be quite long, depending on which bootloader the chip had.
 
 ## [v1.0.4] - 2021-09-20
 ### Changed
