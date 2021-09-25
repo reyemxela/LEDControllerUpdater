@@ -1,12 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
+	"time"
 
 	"github.com/arduino/arduino-cli/cli/output"
 	"github.com/arduino/arduino-cli/commands/board"
@@ -15,6 +16,7 @@ import (
 	"github.com/arduino/arduino-cli/commands/lib"
 	"github.com/arduino/arduino-cli/commands/upload"
 	rpc "github.com/arduino/arduino-cli/rpc/cc/arduino/cli/commands/v1"
+	"go.bug.st/serial"
 )
 
 const (
@@ -203,28 +205,55 @@ func (a *App) DownloadAndFlash(v string, h string) {
 func (a *App) FlashHex(hexFile string) error {
 	a.SetStatus("Flashing " + filepath.Base(hexFile))
 
-	ul := func(f string) error {
-		_, err := upload.Upload(context.Background(), &rpc.UploadRequest{
-			Instance:   a.instance,
-			Fqbn:       f,
-			SketchPath: a.tmpPath,
-			Port:       a.port,
-			ImportFile: hexFile,
-		}, io.Discard, io.Discard)
-		return err
+	bl := FQBNold
+	if tb, err := testBootloaderType(a.port.Address, 115200); tb && (err == nil) {
+		bl = FQBN
 	}
 
-	if err := ul(FQBN); err != nil {
-		if strings.Contains(err.Error(), "uploading error") {
-			a.SetStatus("Trying old bootloader mode")
-			if err := ul(FQBNold); err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
+	if _, err := upload.Upload(context.Background(), &rpc.UploadRequest{
+		Instance:   a.instance,
+		Fqbn:       bl,
+		SketchPath: a.tmpPath,
+		Port:       a.port,
+		ImportFile: hexFile,
+	}, io.Discard, io.Discard); err != nil {
+		return err
 	}
 
 	a.SetStatus("Done!")
 	return nil
+}
+
+func testBootloaderType(p string, b int) (bool, error) {
+	syncCmd := []byte{0x30, 0x20}
+	inSyncResp := []byte{0x14, 0x10}
+	delay := (200 * time.Millisecond)
+	timeout := (200 * time.Millisecond)
+
+	port, err := serial.Open(p, &serial.Mode{BaudRate: b})
+	if err != nil {
+		return false, err
+	}
+	defer port.Close()
+
+	port.SetReadTimeout(timeout)
+
+	for i := 0; i < 2; i++ {
+		port.Write(syncCmd)
+		time.Sleep(delay)
+	}
+	port.ResetInputBuffer()
+	port.SetDTR(false)
+
+	for i := 0; i < 4; i++ {
+		port.Write(syncCmd)
+
+		resp := make([]byte, 2)
+		port.Read(resp)
+		if bytes.Equal(resp, inSyncResp) {
+			return true, nil
+		}
+		port.ResetInputBuffer()
+	}
+	return false, nil
 }

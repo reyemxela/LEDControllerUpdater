@@ -7,4 +7,5 @@ require (
 	github.com/arduino/arduino-cli v0.0.0-20210924152824-be520ef84551
 	github.com/gonutz/ide v0.0.0-20200517034207-df64a3832118
 	github.com/sirupsen/logrus v1.8.1
+	go.bug.st/serial v1.3.2
 )
