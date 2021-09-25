@@ -86,7 +86,7 @@ func (a *App) GetPorts() {
 			}
 			delete(a.allPorts, addr)
 			// if the unplugged board was our current one, grab the next available (if there is one)
-			if a.port.Address == port.Address {
+			if a.port.Address == addr {
 				if len(a.portSelect.Options) > 0 {
 					a.port = a.allPorts[a.portSelect.Options[0]]
 				} else {
@@ -99,7 +99,7 @@ func (a *App) GetPorts() {
 			a.portSelect.ClearSelected()
 		} else {
 			a.ready.Port = true
-			a.portSelect.SetSelected(addr)
+			a.portSelect.SetSelected(a.port.Address)
 		}
 		a.CheckReady()
 	}
@@ -228,6 +228,7 @@ func testBootloaderType(p string, b int) (bool, error) {
 	syncCmd := []byte{0x30, 0x20}
 	inSyncResp := []byte{0x14, 0x10}
 	delay := (200 * time.Millisecond)
+	shortDelay := (50 * time.Millisecond)
 	timeout := (200 * time.Millisecond)
 
 	port, err := serial.Open(p, &serial.Mode{BaudRate: b})
@@ -247,6 +248,7 @@ func testBootloaderType(p string, b int) (bool, error) {
 
 	for i := 0; i < 4; i++ {
 		port.Write(syncCmd)
+		time.Sleep(shortDelay)
 
 		resp := make([]byte, 2)
 		port.Read(resp)
