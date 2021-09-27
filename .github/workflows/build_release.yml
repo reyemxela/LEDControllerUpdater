@@ -22,9 +22,7 @@ jobs:
 
           - build-os: macos-latest
             archive-name: LEDControllerUpdater_mac.zip
-            archive-cmd: |
-                          chmod +x LEDControllerUpdater
-                          zip -r LEDControllerUpdater_mac.zip LEDControllerUpdater
+            archive-cmd: zip -r LEDControllerUpdater_mac.zip LEDControllerUpdater.app
                           
     runs-on: ${{ matrix.build-os }}
 
@@ -41,6 +39,14 @@ jobs:
       
       - name: Go build
         run: go build -ldflags="-w -s" .
+
+      - name: Package (mac)
+        if: ${{ matrix.build-os == 'macos-latest' }}
+        run: |
+              go install "fyne.io/fyne/v2/cmd/fyne@v2.1.0"
+              fyne package --executable LEDControllerUpdater \
+                           --appVersion $(cat main.go |grep "APP_VERSION" |cut -d '"' -f 2 |tr -d 'v') \
+                           --appID com.wingnuttech.LEDControllerUpdater
       
       - name: Compress
         run: ${{ matrix.archive-cmd }}
