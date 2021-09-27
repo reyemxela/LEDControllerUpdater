@@ -12,10 +12,10 @@ jobs:
         build-os: [ubuntu-latest, windows-latest, macos-latest]
         include:
           - build-os: ubuntu-latest
-            archive-name: LEDControllerUpdater_linux.tar.gz
+            archive-name: LEDControllerUpdater_linux.zip
             archive-cmd: |
                           chmod +x LEDControllerUpdater
-                          tar -cvzf LEDControllerUpdater_linux.tar.gz LEDControllerUpdater
+                          zip LEDControllerUpdater_linux.zip LEDControllerUpdater
           - build-os: windows-latest
             archive-name: LEDControllerUpdater_windows.zip
             archive-cmd: powershell Compress-Archive LEDControllerUpdater.exe LEDControllerUpdater_windows.zip
