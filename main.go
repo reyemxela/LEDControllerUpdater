@@ -2,6 +2,7 @@ package main
 
 import (
 	"runtime"
+	"time"
 )
 
 const (
@@ -34,6 +35,12 @@ func main() {
 	a.mainWindow.SetFixedSize(true)
 	a.ResizeMainWindow()
 	a.mainWindow.CenterOnScreen()
+
+	go func() {
+		time.Sleep(1 * time.Second)
+		a.CleanOldVersions()
+		a.CheckForUpdate()
+	}()
 
 	a.mainWindow.ShowAndRun()
 }
