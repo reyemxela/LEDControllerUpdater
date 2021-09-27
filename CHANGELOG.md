@@ -1,8 +1,11 @@
-## [v1.1.0] - 2021-09-24
+## [v1.1.0] - 2021-09-26
 ### New firmware repository and structure
 The firmware repo has been renamed from FT-Night-Radian-LED-Controller to just LEDController, and overhauled in the process. This new project structure required breaking changes to the Updater app.
 
 The old firmware repo has been left in place so as not to break old versions of the updater, but will be archived.
+
+### Added
+- The app now has auto-update functionality. It will check for newer versions on start, and ask if you want to update. It will then automatically download the latest version, install it in-place, and relaunch.
 
 ### Changed
 - Point to new firmware repo and updated filenames.
