@@ -16,25 +16,32 @@ type Releases []struct {
 	} `json:"assets"`
 }
 
-func (a *App) UpdateReleases() {
-	resp, err := http.Get(API_URL)
+func ParseReleases(url string) (Releases, error) {
+	resp, err := http.Get(url)
 	if err != nil {
-		a.NewPopup("Error", "Unable to get releases")
-		return
+
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		a.NewPopup("Error", "Unable to get releases")
-		return
+		return nil, err
 	}
 
 	releases := Releases{}
 	err = json.Unmarshal(body, &releases)
 	if err != nil {
-		a.NewPopup("Error", "Unable to parse releases")
-		return
+		return nil, err
+	}
+
+	return releases, nil
+}
+
+func (a *App) UpdateReleases() {
+	releases, err := ParseReleases(API_URL)
+	if err != nil {
+		a.NewPopup("Error", "Unable to get releases")
 	}
 
 	for _, release := range releases {
