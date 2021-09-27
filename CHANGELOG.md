@@ -5,7 +5,7 @@ The firmware repo has been renamed from FT-Night-Radian-LED-Controller to just L
 The old firmware repo has been left in place so as not to break old versions of the updater, but will be archived.
 
 ### Added
-- The app now has auto-update functionality. It will check for newer versions on start, and ask if you want to update. It will then automatically download the latest version, install it in-place, and relaunch.
+- The app now has auto-update functionality on Windows and Linux. It will check for newer versions on start, and ask if you want to update. It will then automatically download the latest version, install it in-place, and relaunch. _Unfortunately due to Apple's sandboxing, this feature won't work on macOS. You will still get a pop-up alerting you to the new version, with a link to download it._
 
 ### Changed
 - Point to new firmware repo and updated filenames.
