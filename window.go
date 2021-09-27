@@ -6,6 +6,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -205,6 +206,7 @@ func (a *App) NewPopup(t string, s string) {
 	popup.SetContent(
 		container.NewVBox(
 			label,
+			layout.NewSpacer(),
 			widget.NewButton("OK", func() {
 				popup.Close()
 			}),
