@@ -10,6 +10,10 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
+const (
+	mainWinWidth = 400
+)
+
 type Ready struct {
 	Port               bool
 	SelectionExists    bool
@@ -98,8 +102,11 @@ func (a *App) MakeMainSection() *fyne.Container {
 		driverBtn.Hide()
 	}
 
+	titleLabel := widget.NewLabel("WingnutTech LED Controller Updater " + APP_VERSION)
+	titleLabel.Alignment = fyne.TextAlignCenter
+
 	return container.NewVBox(
-		widget.NewLabel("WingnutTech LED Controller Updater "+APP_VERSION),
+		titleLabel,
 		driverBtn,
 		a.verSelect,
 		a.layoutSelect,
