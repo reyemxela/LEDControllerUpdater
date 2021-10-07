@@ -44,8 +44,6 @@ func (a *App) ResizeMainWindow() {
 		// padding (the size jumps around a bit if there's none)
 		Height: a.mainWindow.Content().MinSize().Height + 10,
 	})
-
-	a.mainWindow.CenterOnScreen()
 }
 
 func (a *App) MakeMainSection() *fyne.Container {
