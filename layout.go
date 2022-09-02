@@ -35,7 +35,7 @@ func (a *App) GenerateCustomLayout() []byte {
 			"#define FUSE_REV %t\n"+
 			"#define TAIL_REV %t\n"+
 			"\n"+
-			"#define NOSE_FUSE_JOINED true // are the nose and fuse strings joined?\n"+
+			"#define NOSE_FUSE_JOINED %t // are the nose and fuse strings joined?\n"+
 			"#define WING_NAV_LEDS %d // wing LEDs that are navlights\n"+
 			"\n"+
 			"#define LED_POWER 25\n",
@@ -43,6 +43,7 @@ func (a *App) GenerateCustomLayout() []byte {
 		a.layout.FuseLEDs, a.layout.TailLEDs,
 		a.layout.WingRev, a.layout.NoseRev,
 		a.layout.FuseRev, a.layout.TailRev,
+		a.layout.NoseFuseJoin,
 		a.layout.WingNavLEDs,
 	))
 }
