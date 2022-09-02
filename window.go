@@ -120,70 +120,91 @@ func (a *App) MakeMainSection() *fyne.Container {
 
 func (a *App) MakeCustomSection() *fyne.Container {
 	wingLEDLabel := widget.NewLabel("Wing: ")
+	noseLEDLabel := widget.NewLabel("Nose: ")
+	fuseLEDLabel := widget.NewLabel("Fuse: ")
+	tailLEDLabel := widget.NewLabel("Tail: ")
+	navLEDLabel := widget.NewLabel("Nav LEDs: ")
+
+	wingLEDSlider := widget.NewSlider(0, 50)
+	noseLEDSlider := widget.NewSlider(0, 50)
+	fuseLEDSlider := widget.NewSlider(0, 50)
+	tailLEDSlider := widget.NewSlider(0, 50)
+	navLEDSlider := widget.NewSlider(0, 50)
+
 	wingRevCheck := widget.NewCheck("Reversed?", func(checked bool) {
 		a.layout.WingRev = checked
 	})
-	wingLEDSlider := widget.NewSlider(0, 50)
-	wingLEDSlider.OnChanged = func(value float64) {
-		wingLEDLabel.SetText("Wing: " + fmt.Sprint(value))
-		a.layout.WingLEDs = int(value)
-	}
-	wingLEDSlider.SetValue(19)
-
-	noseLEDLabel := widget.NewLabel("Nose: ")
 	noseRevCheck := widget.NewCheck("Reversed?", func(checked bool) {
 		a.layout.NoseRev = checked
 	})
-	noseLEDSlider := widget.NewSlider(0, 50)
+	fuseRevCheck := widget.NewCheck("Reversed?", func(checked bool) {
+		a.layout.FuseRev = checked
+	})
+	tailRevCheck := widget.NewCheck("Reversed?", func(checked bool) {
+		a.layout.TailRev = checked
+	})
+	noseFuseJoinCheck := widget.NewCheck("Nose/Fuse joined?", func(checked bool) {
+		a.layout.NoseFuseJoin = checked
+	})
+
+	wingLEDSlider.OnChanged = func(value float64) {
+		wingLEDLabel.SetText("Wing: " + fmt.Sprint(value))
+		a.layout.WingLEDs = int(value)
+		navLEDSlider.Max = value
+		if navLEDSlider.Value > value {
+			navLEDSlider.OnChanged(value)
+		}
+		navLEDSlider.Refresh()
+	}
+
 	noseLEDSlider.OnChanged = func(value float64) {
 		noseLEDLabel.SetText("Nose: " + fmt.Sprint(value))
 		a.layout.NoseLEDs = int(value)
 	}
-	noseRevCheck.SetChecked(true)
-	noseLEDSlider.SetValue(6)
 
-	fuseLEDLabel := widget.NewLabel("Fuse: ")
-	fuseRevCheck := widget.NewCheck("Reversed?", func(checked bool) {
-		a.layout.FuseRev = checked
-	})
-	fuseLEDSlider := widget.NewSlider(0, 50)
 	fuseLEDSlider.OnChanged = func(value float64) {
 		fuseLEDLabel.SetText("Fuse: " + fmt.Sprint(value))
 		a.layout.FuseLEDs = int(value)
 	}
-	fuseLEDSlider.SetValue(13)
 
-	tailLEDLabel := widget.NewLabel("Tail: ")
-	tailRevCheck := widget.NewCheck("Reversed?", func(checked bool) {
-		a.layout.TailRev = checked
-	})
-	tailLEDSlider := widget.NewSlider(0, 50)
 	tailLEDSlider.OnChanged = func(value float64) {
 		tailLEDLabel.SetText("Tail: " + fmt.Sprint(value))
 		a.layout.TailLEDs = int(value)
 	}
-	tailLEDSlider.SetValue(4)
 
-	NavLEDLabel := widget.NewLabel("Nav LEDs: ")
-	NavLEDSlider := widget.NewSlider(0, 50)
-	NavLEDSlider.OnChanged = func(value float64) {
-		NavLEDLabel.SetText("Nav LEDs: " + fmt.Sprint(value))
+	navLEDSlider.OnChanged = func(value float64) {
+		navLEDLabel.SetText("Nav LEDs: " + fmt.Sprint(value))
 		a.layout.WingNavLEDs = int(value)
 	}
-	NavLEDSlider.SetValue(7)
+
+	wingLEDSlider.SetValue(31)
+	noseLEDSlider.SetValue(4)
+	fuseLEDSlider.SetValue(18)
+	tailLEDSlider.SetValue(8)
+	navLEDSlider.SetValue(8)
+	noseRevCheck.SetChecked(true)
+	noseFuseJoinCheck.SetChecked(true)
 
 	return container.NewVBox(
+		widget.NewSeparator(),
 		container.NewGridWithColumns(2, wingLEDLabel, wingRevCheck),
 		wingLEDSlider,
+		widget.NewSeparator(),
 		container.NewGridWithColumns(2, noseLEDLabel, noseRevCheck),
 		noseLEDSlider,
+		widget.NewSeparator(),
 		container.NewGridWithColumns(2, fuseLEDLabel, fuseRevCheck),
 		fuseLEDSlider,
+		widget.NewSeparator(),
 		container.NewGridWithColumns(2, tailLEDLabel, tailRevCheck),
 		tailLEDSlider,
+		widget.NewSeparator(),
 
-		NavLEDLabel,
-		NavLEDSlider,
+		navLEDLabel,
+		navLEDSlider,
+		widget.NewSeparator(),
+
+		noseFuseJoinCheck,
 	)
 }
 

@@ -71,6 +71,7 @@ func CreateApp() *App {
 	a.mainWindow.SetContent(container.NewVBox(
 		a.MakeMainSection(),
 		a.customSection,
+		widget.NewSeparator(),
 		a.status,
 	))
 

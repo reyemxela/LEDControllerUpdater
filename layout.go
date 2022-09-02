@@ -13,6 +13,8 @@ type CustomLayout struct {
 	NoseRev bool
 	FuseRev bool
 	TailRev bool
+
+	NoseFuseJoin bool
 }
 
 func (a *App) GenerateCustomLayout() []byte {
