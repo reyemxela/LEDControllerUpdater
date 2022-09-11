@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"runtime"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -37,13 +38,31 @@ func (a *App) CheckReady() {
 }
 
 func (a *App) ResizeMainWindow() {
-	a.mainWindow.Resize(fyne.Size{
+	oldSize := a.mainWindow.Canvas().Size()
+	newSize := fyne.Size{
 		Width: mainWinWidth,
 
 		// re-fit the window based on the contents, plus some
 		// padding (the size jumps around a bit if there's none)
-		Height: a.mainWindow.Content().MinSize().Height + 10,
-	})
+		Height: float32(int(a.mainWindow.Content().MinSize().Height) + 10),
+	}
+
+	a.mainWindow.Resize(newSize)
+
+	// it seems to take a small amount of time after calling Resize()
+	// before the canvas size actually updates, so this just waits until
+	// the new canvas size is applied before calling CenterOnScreen()
+	if newSize != oldSize {
+		go func() {
+			for i := 0; i < 100; i++ { // limit to 100 loops just in case something goes funky
+				if a.mainWindow.Canvas().Size() != oldSize {
+					a.mainWindow.CenterOnScreen()
+					break
+				}
+				time.Sleep(10 * time.Millisecond)
+			}
+		}()
+	}
 }
 
 func (a *App) MakeMainSection() *fyne.Container {
