@@ -1,3 +1,12 @@
+## [v1.1.1] - 2022-09-12
+### Changed
+- Nav LEDS are now dynamically limited to the Wing LED count
+- Added Nose-Fuse join checkbox
+
+### Fixed
+- Window should center on resize correctly now
+- Fixed a potential crash if checking for new firmware/app releases comes back empty
+
 ## [v1.1.0] - 2021-09-26
 ### New firmware repository and structure
 The firmware repo has been renamed from FT-Night-Radian-LED-Controller to just LEDController, and overhauled in the process. This new project structure required breaking changes to the Updater app.

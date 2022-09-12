@@ -7,7 +7,7 @@ import (
 
 const (
 	APP_NAME       = "LED Controller Updater"
-	APP_VERSION    = "v1.1.0"
+	APP_VERSION    = "v1.1.1"
 	TMP_DIR_NAME   = "LEDControllerUpdater"
 	API_URL        = "https://api.github.com/repos/wingnut-tech/LEDController/releases"
 	CH340_URL      = "https://github.com/reyemxela/LEDControllerUpdater/releases/download/v1.0.0/CH34x_Install_Windows_v3_4.zip"
