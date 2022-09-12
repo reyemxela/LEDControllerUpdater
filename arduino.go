@@ -59,7 +59,7 @@ func (a *App) CheckCore() {
 }
 
 func (a *App) GetPorts() {
-	eventsChan, err := board.Watch(a.instance.Id, nil)
+	eventsChan, _, err := board.Watch(&rpc.BoardListWatchRequest{Instance: a.instance})
 	if err != nil {
 		a.NewPopup("Error", err.Error())
 	}
@@ -168,7 +168,7 @@ func (a *App) CompileAndFlash(v string) {
 		Fqbn:       FQBN,
 		SketchPath: newFolder,
 		ExportDir:  exportDir,
-	}, io.Discard, io.Discard, false); err != nil {
+	}, io.Discard, io.Discard, nil, false); err != nil {
 		fmt.Println(err)
 	}
 

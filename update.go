@@ -21,7 +21,7 @@ const (
 
 func (a *App) CheckForUpdate() {
 	releases, err := ParseReleases(APP_API_URL)
-	if err != nil {
+	if err != nil || len(releases) < 1 {
 		return
 	}
 

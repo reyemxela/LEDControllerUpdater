@@ -40,7 +40,7 @@ func ParseReleases(url string) (Releases, error) {
 
 func (a *App) UpdateReleases() {
 	releases, err := ParseReleases(API_URL)
-	if err != nil {
+	if err != nil || len(releases) < 1 {
 		a.NewPopup("Error", "Unable to get releases")
 	}
 
