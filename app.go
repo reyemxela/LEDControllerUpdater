@@ -46,7 +46,6 @@ func CreateApp() *App {
 
 	// arduino-cli config
 	configuration.Settings = configuration.Init("")
-	logrus.SetLevel(logrus.FatalLevel)
 	a.instance = instance.CreateAndInit()
 
 	a.tmpPath = os.TempDir()
@@ -54,6 +53,7 @@ func CreateApp() *App {
 		a.tmpPath = filepath.Join(a.tmpPath, TMP_DIR_NAME)
 		os.MkdirAll(a.tmpPath, 0777)
 	}
+	logrus.Debug("Tmp path: ", a.tmpPath)
 
 	a.releases = make(map[string]map[string]string)
 	a.allPorts = make(map[string]*rpc.Port)

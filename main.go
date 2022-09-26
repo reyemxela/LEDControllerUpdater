@@ -1,8 +1,11 @@
 package main
 
 import (
+	"flag"
 	"runtime"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -18,6 +21,16 @@ func main() {
 	// yay windows
 	if runtime.GOOS == "windows" {
 		HideConsoleWindow()
+	}
+
+	logLevel := flag.String("log", "fatal", "log level: (fatal)/info/debug")
+	flag.Parse()
+
+	lvl, err := logrus.ParseLevel(*logLevel)
+	if err != nil {
+		logrus.Error(err.Error())
+	} else {
+		logrus.SetLevel(lvl)
 	}
 
 	a := CreateApp()

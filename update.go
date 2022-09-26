@@ -12,6 +12,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -77,6 +78,7 @@ func (a *App) UpdateApp(ver string) error {
 	if err != nil {
 		return err
 	}
+	logrus.Debug("Current executable name: ", en)
 
 	var zipName string
 	if runtime.GOOS == "linux" {
@@ -87,28 +89,35 @@ func (a *App) UpdateApp(ver string) error {
 
 	url := fmt.Sprintf("%s/%s/%s/%s", APP_RELEASE_URL_PREFIX, "download", ver, zipName)
 	zipFile := filepath.Join(a.tmpPath, zipName)
+	logrus.Debug("Downloading ", url, " to ", zipFile)
 	err = a.DownloadFile(zipFile, url)
 	if err != nil {
 		return err
 	}
 
 	fileNames, err := a.UnzipFile(zipFile, a.tmpPath)
+	logrus.Debug("Unzipped files: ", fileNames)
 	if err != nil {
 		return err
 	}
 
-	err = os.Rename(en, filepath.Join(a.tmpPath, filepath.Base(en+".bak")))
+	bakPath := filepath.Join(a.tmpPath, filepath.Base(en+".bak"))
+	logrus.Debug("Renaming running app to ", bakPath)
+	err = os.Rename(en, bakPath)
 	if err != nil {
 		return err
 	}
 
+	logrus.Debug("Renaming ", fileNames[0], " to ", en)
 	err = os.Rename(fileNames[0], en)
 	if err != nil {
 		return err
 	}
 
+	logrus.Debug("Starting new version")
 	cmd := exec.Command(en)
 	cmd.Start()
+	logrus.Debug("Exiting old version")
 	a.fyneApp.Quit()
 
 	return nil
@@ -134,5 +143,7 @@ func (a *App) CleanOldVersions() {
 		return
 	}
 
-	os.Remove(filepath.Join(a.tmpPath, filepath.Base(en+".bak")))
+	bakPath := filepath.Join(a.tmpPath, filepath.Base(en+".bak"))
+	logrus.Debug("Attempting to remove any old versions at ", bakPath)
+	os.Remove(bakPath)
 }
