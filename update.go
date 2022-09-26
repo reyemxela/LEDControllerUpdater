@@ -17,17 +17,21 @@ import (
 
 const (
 	APP_API_URL            = "https://api.github.com/repos/reyemxela/LEDControllerUpdater/releases"
-	APP_RELEASE_URL_PREFIX = "https://github.com/reyemxela/LEDControllerUpdater/releases/"
+	APP_RELEASE_URL_PREFIX = "https://github.com/reyemxela/LEDControllerUpdater/releases"
 )
 
-func (a *App) CheckForUpdate() {
+func (a *App) CheckForUpdate(testUpdate bool) {
 	releases, err := ParseReleases(APP_API_URL)
 	if err != nil || len(releases) < 1 {
 		return
 	}
 
+	if testUpdate {
+		logrus.Info("Forcing auto-update")
+	}
+
 	latest := releases[0].Name
-	if latest > APP_VERSION {
+	if latest > APP_VERSION || testUpdate {
 		popup := a.fyneApp.NewWindow("Update")
 		var content *fyne.Container
 
@@ -78,6 +82,7 @@ func (a *App) UpdateApp(ver string) error {
 	if err != nil {
 		return err
 	}
+	edir := filepath.Dir(en)
 	logrus.Debug("Current executable name: ", en)
 
 	var zipName string
@@ -95,23 +100,25 @@ func (a *App) UpdateApp(ver string) error {
 		return err
 	}
 
-	fileNames, err := a.UnzipFile(zipFile, a.tmpPath)
-	logrus.Debug("Unzipped files: ", fileNames)
-	if err != nil {
-		return err
-	}
-
-	bakPath := filepath.Join(a.tmpPath, filepath.Base(en+".bak"))
+	bakPath := en + ".bak"
 	logrus.Debug("Renaming running app to ", bakPath)
 	err = os.Rename(en, bakPath)
 	if err != nil {
 		return err
 	}
 
-	logrus.Debug("Renaming ", fileNames[0], " to ", en)
-	err = os.Rename(fileNames[0], en)
+	fileNames, err := a.UnzipFile(zipFile, edir)
+	logrus.Debug("Unzipped files: ", fileNames)
 	if err != nil {
 		return err
+	}
+
+	if fileNames[0] != en {
+		logrus.Debug("Renaming ", fileNames[0], " to ", en)
+		err = os.Rename(fileNames[0], en)
+		if err != nil {
+			return err
+		}
 	}
 
 	logrus.Debug("Starting new version")
@@ -143,7 +150,13 @@ func (a *App) CleanOldVersions() {
 		return
 	}
 
-	bakPath := filepath.Join(a.tmpPath, filepath.Base(en+".bak"))
-	logrus.Debug("Attempting to remove any old versions at ", bakPath)
-	os.Remove(bakPath)
+	bakPaths := []string{
+		en + ".bak",
+		filepath.Join(a.tmpPath, filepath.Base(en+".bak")),
+	}
+
+	for _, p := range bakPaths {
+		logrus.Debug("Attempting to remove any old versions at ", p)
+		os.Remove(p)
+	}
 }

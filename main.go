@@ -23,6 +23,7 @@ func main() {
 		HideConsoleWindow()
 	}
 
+	testUpdate := flag.Bool("testupdate", false, "force auto-update for testing")
 	logLevel := flag.String("log", "fatal", "log level: (fatal)/info/debug")
 	flag.Parse()
 
@@ -51,7 +52,7 @@ func main() {
 	go func() {
 		time.Sleep(1 * time.Second)
 		a.CleanOldVersions()
-		a.CheckForUpdate()
+		a.CheckForUpdate(*testUpdate)
 	}()
 
 	a.mainWindow.ShowAndRun()
