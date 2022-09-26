@@ -1,3 +1,11 @@
+## [v1.1.2] - 2022-09-25
+### Changed
+- Adjustable logging levels, mainly for my benefit when developing. Could be useful in the future for diagnosing other issues that people might have.
+
+### Fixed
+- Improved bootloader detection, to hopefully fix some cases where it was failing
+- Fixed some auto-updater errors when the "tmp" folder is on a different drive
+
 ## [v1.1.1] - 2022-09-12
 ### Changed
 - Nav LEDS are now dynamically limited to the Wing LED count
