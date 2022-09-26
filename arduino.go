@@ -16,6 +16,7 @@ import (
 	"github.com/arduino/arduino-cli/commands/lib"
 	"github.com/arduino/arduino-cli/commands/upload"
 	rpc "github.com/arduino/arduino-cli/rpc/cc/arduino/cli/commands/v1"
+	"github.com/sirupsen/logrus"
 	"go.bug.st/serial"
 )
 
@@ -208,6 +209,11 @@ func (a *App) FlashHex(hexFile string) error {
 	bl := FQBNold
 	if tb, err := testBootloaderType(a.port.Address, 115200); tb && (err == nil) {
 		bl = FQBN
+		logrus.Info("Detected new bootloader")
+	} else if tb, err := testBootloaderType(a.port.Address, 57600); tb && (err == nil) {
+		logrus.Info("Detected old bootloader")
+	} else {
+		logrus.Info("Couldn't detect bootloader. Assuming old.")
 	}
 
 	if _, err := upload.Upload(context.Background(), &rpc.UploadRequest{
@@ -225,33 +231,41 @@ func (a *App) FlashHex(hexFile string) error {
 }
 
 func testBootloaderType(p string, b int) (bool, error) {
+	logrus.Debug("Checking bootloader type")
 	syncCmd := []byte{0x30, 0x20}
 	inSyncResp := []byte{0x14, 0x10}
-	delay := (200 * time.Millisecond)
+	delay := (250 * time.Millisecond)
 	shortDelay := (50 * time.Millisecond)
-	timeout := (200 * time.Millisecond)
+	timeout := (250 * time.Millisecond)
 
 	port, err := serial.Open(p, &serial.Mode{BaudRate: b})
 	if err != nil {
+		logrus.Error("Unable to open port: ", err.Error())
 		return false, err
 	}
 	defer port.Close()
 
 	port.SetReadTimeout(timeout)
 
-	for i := 0; i < 2; i++ {
-		port.Write(syncCmd)
-		time.Sleep(delay)
-	}
-	port.ResetInputBuffer()
+	// reset bootloader
 	port.SetDTR(false)
+	port.SetRTS(false)
+	time.Sleep(delay)
+
+	port.SetDTR(true)
+	port.SetRTS(true)
+	time.Sleep(shortDelay)
+
+	port.ResetInputBuffer()
 
 	for i := 0; i < 4; i++ {
+		logrus.Debug("Sending sync command...")
 		port.Write(syncCmd)
 		time.Sleep(shortDelay)
 
 		resp := make([]byte, 2)
 		port.Read(resp)
+		logrus.Debug("Response: ", fmt.Sprintf("%02x %02x", resp[0], resp[1]))
 		if bytes.Equal(resp, inSyncResp) {
 			return true, nil
 		}

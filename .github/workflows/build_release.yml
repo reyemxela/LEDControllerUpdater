@@ -63,8 +63,8 @@ jobs:
       - name: Check version
         run: |
               git fetch --tags
-              file_ver=$(sed -n 's/^.*APP_VERSION .*"\(.*\)"$/\1/p' main.go)
-              ch_ver=$(grep -oE -m1 "v[0-9]*\.[0-9]*\.[0-9]*" CHANGELOG.md)
+              file_ver=$(awk -F'"' '/APP_VERSION/ {print $2}' main.go)
+              ch_ver=$(awk -F'[][]' '/\[v[0-9.]+\]/ {print $2; exit}' CHANGELOG.md)
               git_tags=$(git describe --tags --always $(git rev-list --tags))
 
               echo "Latest git tag:    ${git_tags%%$'\n'*}"
@@ -87,7 +87,7 @@ jobs:
         run: awk '/^## / {if (p) {exit}; {p=1}} p' CHANGELOG.md > latest-CHANGELOG.md
 
       - name: Get version
-        run: echo "version=$(sed -n 's/^.*APP_VERSION .*"\(.*\)"$/\1/p' main.go)" >> $GITHUB_ENV
+        run: echo "version=$(awk -F'\"' '/APP_VERSION/ {print $2}' main.go)" >> $GITHUB_ENV
 
       - name: Release
         uses: softprops/action-gh-release@v1
