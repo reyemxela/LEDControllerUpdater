@@ -9,61 +9,77 @@ jobs:
         build-os: [ubuntu-latest, windows-latest, macos-latest]
         include:
           - build-os: ubuntu-latest
-            archive-name: LEDControllerUpdater_linux.zip
+            pre-build: sudo apt-get update && sudo apt-get install gcc libgl1-mesa-dev libegl1-mesa-dev libgles2-mesa-dev libx11-dev xorg-dev
+            build: |
+                    go build -ldflags="-w -s" -o LEDControllerUpdater ./gui/
+                    go build -ldflags="-w -s" -o LEDControllerUpdaterCLI ./cli/
+            post-build: echo None
             archive-cmd: |
-                          chmod +x LEDControllerUpdater
+                          chmod +x LEDControllerUpdater LEDControllerUpdaterCLI
                           zip LEDControllerUpdater_linux.zip LEDControllerUpdater
+                          zip LEDControllerUpdaterCLI_linux.zip LEDControllerUpdaterCLI
+
           - build-os: windows-latest
-            archive-name: LEDControllerUpdater_windows.zip
-            archive-cmd: powershell Compress-Archive LEDControllerUpdater.exe LEDControllerUpdater_windows.zip
+            pre-build: echo None
+            build: |
+                    go build -ldflags="-w -s" -o LEDControllerUpdater.exe ./gui/
+                    go build -ldflags="-w -s" -o LEDControllerUpdaterCLI.exe ./cli/
+            post-build: echo None
+            archive-cmd: |
+                          powershell Compress-Archive LEDControllerUpdater.exe LEDControllerUpdater_windows.zip
+                          powershell Compress-Archive LEDControllerUpdaterCLI.exe LEDControllerUpdaterCLI_windows.zip
 
           - build-os: macos-latest
-            archive-name: LEDControllerUpdater_mac.zip
-            archive-cmd: zip -r LEDControllerUpdater_mac.zip LEDControllerUpdater.app
+            pre-build: echo None
+            build: |
+                    go build -ldflags="-w -s" -o LEDControllerUpdater ./gui/
+                    go build -ldflags="-w -s" -o LEDControllerUpdaterCLI ./cli/
+            post-build: |
+                        go install "fyne.io/fyne/v2/cmd/fyne@latest"
+                        ver=$(grep "APP_VERSION" state/state.go |cut -d '"' -f 2 |tr -d 'v')
+                        fyne package --executable LEDControllerUpdater --appVersion $ver --appID com.wingnuttech.LEDControllerUpdater
+            archive-cmd: |
+                          chmod +x LEDControllerUpdaterCLI
+                          zip -r LEDControllerUpdater_mac.zip LEDControllerUpdater.app
+                          zip -r LEDControllerUpdaterCLI_mac.zip LEDControllerUpdaterCLI
                           
     runs-on: ${{ matrix.build-os }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v3
         with:
-          go-version: 1.17.x
+          go-version: 1.18.x
 
-      - name: Get dependencies
-        if: ${{ matrix.build-os == 'ubuntu-latest' }}
-        run: sudo apt-get update && sudo apt-get install gcc libgl1-mesa-dev libegl1-mesa-dev libgles2-mesa-dev libx11-dev xorg-dev
+      - name: Pre-build
+        run: ${{ matrix.pre-build }}
       
-      - name: Go build
-        run: go build -ldflags="-w -s" .
-
-      - name: Package (mac)
-        if: ${{ matrix.build-os == 'macos-latest' }}
-        run: |
-              go install "fyne.io/fyne/v2/cmd/fyne@latest"
-              fyne package --executable LEDControllerUpdater \
-                           --appVersion $(grep "APP_VERSION" main.go |cut -d '"' -f 2 |tr -d 'v') \
-                           --appID com.wingnuttech.LEDControllerUpdater
+      - name: Build apps
+        run: ${{ matrix.build }}
+      
+      - name: Post-build
+        run: ${{ matrix.post-build }}
       
       - name: Compress
         run: ${{ matrix.archive-cmd }}
         
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: build
-          path: ${{ matrix.archive-name }}
+          path: LEDControllerUpdater*.zip
 
   check_version:
     runs-on: ubuntu-latest
     steps:
       - name: Chackout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Check version
         run: |
               git fetch --tags
-              file_ver=$(awk -F'"' '/APP_VERSION/ {print $2}' main.go)
+              file_ver=$(awk -F'"' '/APP_VERSION/ {print $2}' state/state.go)
               ch_ver=$(awk -F'[][]' '/\[v[0-9.]+\]/ {print $2; exit}' CHANGELOG.md)
               git_tags=$(git describe --tags --always $(git rev-list --tags))
 
@@ -79,15 +95,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
 
       - name: Generate changelog
         run: awk '/^## / {if (p) {exit}; {p=1}} p' CHANGELOG.md > latest-CHANGELOG.md
 
       - name: Get version
-        run: echo "version=$(awk -F'\"' '/APP_VERSION/ {print $2}' main.go)" >> $GITHUB_ENV
+        run: echo "version=$(awk -F'\"' '/APP_VERSION/ {print $2}' state/state.go)" >> $GITHUB_ENV
 
       - name: Release
         uses: softprops/action-gh-release@v1

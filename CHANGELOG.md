@@ -1,3 +1,21 @@
+## [v1.2.0] - 2022-10-26
+Complete project overhaul
+
+The back-end logic and functionality has been separated from the frontend UI, which allows different frontends to be developed and used.
+
+So now in addition to the normal GUI version, we have an interactive CLI version of the app, which should work for those with older computers that might have OpenGL issues.
+
+I was also able to make most areas of the code a lot less inter-dependant on others, which should help with maintainability and make it easier to add new features or even other frontends.
+
+### Added
+- GUI/CLI versions of the app
+
+### Changed
+- Everything
+- All of it
+- But seriously, in redesigning the GUI from the ground up, I did a bit of tweaking of the layout. The Custom section now opens to the right instead of below, which helps the main window not get so tall.
+
+
 ## [v1.1.2] - 2022-09-25
 ### Changed
 - Adjustable logging levels, mainly for my benefit when developing. Could be useful in the future for diagnosing other issues that people might have.
