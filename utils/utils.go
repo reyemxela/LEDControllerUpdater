@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"archive/zip"
@@ -7,16 +7,26 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
-func (a *App) DownloadFile(filename string, url string) error {
-	a.SetStatus("Downloading " + filepath.Base(filename))
-	defer a.SetStatus("")
+func ListKeys[K string, V any](m map[K]V) []K {
+	o := make([]K, 0, len(m))
+	for k := range m {
+		o = append(o, k)
+	}
+	sort.Slice(o, func(i, j int) bool {
+		return o[i] > o[j]
+	})
 
+	return o
+}
+
+func DownloadFile(filename string, url string) error {
 	resp, err := http.Get(url)
 	if err != nil {
-		return err
+		return fmt.Errorf("download: " + err.Error())
 	}
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("error downloading file")
@@ -26,22 +36,19 @@ func (a *App) DownloadFile(filename string, url string) error {
 
 	out, err := os.Create(filename)
 	if err != nil {
-		return err
+		return fmt.Errorf("download: " + err.Error())
 	}
 	defer out.Close()
 
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
-		return err
+		return fmt.Errorf("download: " + err.Error())
 	}
 
 	return nil
 }
 
-func (a *App) UnzipFile(filename string, dest string) ([]string, error) {
-	a.SetStatus("Unzipping " + filepath.Base(filename))
-	defer a.SetStatus("")
-
+func UnzipFile(filename string, dest string) ([]string, error) {
 	fileNames := []string{}
 
 	r, err := zip.OpenReader(filename)

@@ -1,4 +1,4 @@
-package main
+package layout
 
 import "fmt"
 
@@ -17,7 +17,24 @@ type CustomLayout struct {
 	NoseFuseJoin bool
 }
 
-func (a *App) GenerateCustomLayout() []byte {
+func DefaultLayout() *CustomLayout {
+	return &CustomLayout{
+		WingLEDs:    31,
+		NoseLEDs:    4,
+		FuseLEDs:    18,
+		TailLEDs:    8,
+		WingNavLEDs: 8,
+
+		WingRev: false,
+		NoseRev: true,
+		FuseRev: false,
+		TailRev: false,
+
+		NoseFuseJoin: true,
+	}
+}
+
+func GenerateCustomLayout(l *CustomLayout) []byte {
 	return []byte(fmt.Sprintf(
 		"#pragma once\n"+
 			"\n"+
@@ -39,11 +56,11 @@ func (a *App) GenerateCustomLayout() []byte {
 			"#define WING_NAV_LEDS %d // wing LEDs that are navlights\n"+
 			"\n"+
 			"#define LED_POWER 25\n",
-		a.layout.WingLEDs, a.layout.NoseLEDs,
-		a.layout.FuseLEDs, a.layout.TailLEDs,
-		a.layout.WingRev, a.layout.NoseRev,
-		a.layout.FuseRev, a.layout.TailRev,
-		a.layout.NoseFuseJoin,
-		a.layout.WingNavLEDs,
+		l.WingLEDs, l.NoseLEDs,
+		l.FuseLEDs, l.TailLEDs,
+		l.WingRev, l.NoseRev,
+		l.FuseRev, l.TailRev,
+		l.NoseFuseJoin,
+		l.WingNavLEDs,
 	))
 }
