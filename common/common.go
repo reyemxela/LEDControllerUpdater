@@ -63,7 +63,9 @@ func Init(s *state.State, setVersions func()) {
 		s.SetStatus("Error: " + err.Error())
 	}
 	s.Versions = v
-	setVersions()
+	if setVersions != nil {
+		setVersions()
+	}
 
 	s.SetStatus("Checking arduino core...")
 	err = arduino.CheckCore(s.Instance)

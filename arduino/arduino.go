@@ -71,9 +71,7 @@ func WatchPorts(s *state.State, callback func()) {
 			s.CurrentPort = addr
 		} else {
 			// if the port was in the list, remove it
-			if _, ok := s.Ports[addr]; ok {
-				delete(s.Ports, addr)
-			}
+			delete(s.Ports, addr)
 			// if the unplugged board was our current one, grab the first available (if there is one)
 			if s.CurrentPort == addr {
 				if len(s.Ports) > 0 {
@@ -86,7 +84,9 @@ func WatchPorts(s *state.State, callback func()) {
 				}
 			}
 		}
-		callback()
+		if callback != nil {
+			callback()
+		}
 	}
 }
 
@@ -153,7 +153,9 @@ func CompileAndFlash(s *state.State) error {
 	}
 
 	s.SetStatus("Flashing custom " + ver + " layout...")
-	if err := FlashHex(filepath.Join(exportDir, ver+".ino.hex"), s.Instance, s.Ports[s.CurrentPort]); err != nil {
+	err = FlashHex(filepath.Join(exportDir, ver+".ino.hex"), s.Instance, s.Ports[s.CurrentPort])
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -186,12 +188,9 @@ func FlashHex(hexFile string, instance *rpc.Instance, port *rpc.Port) error {
 	if tb {
 		bl = FQBN
 	} else {
-		tb, err := testBootloaderType(port.Address, 57600)
+		_, err := testBootloaderType(port.Address, 57600)
 		if err != nil {
 			return err
-		}
-		if tb {
-		} else {
 		}
 	}
 
