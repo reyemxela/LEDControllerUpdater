@@ -61,7 +61,12 @@ func NewState(appType string, statusFunc func(text string)) (*State, error) {
 
 	tmpDir := os.TempDir()
 	if tmpDir != "" {
-		tmpDir = filepath.Join(tmpDir, TMP_DIR_NAME)
+		tmpDirSym, err := filepath.EvalSymlinks(tmpDir)
+		if err != nil {
+			return nil, err
+		}
+
+		tmpDir = filepath.Join(tmpDirSym, TMP_DIR_NAME)
 		os.MkdirAll(tmpDir, 0777)
 		os.Chdir(tmpDir)
 	}
